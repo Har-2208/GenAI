@@ -1,0 +1,110 @@
+.health-check {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  animation: slideIn 0.3s ease-out;
+}
+
+.health-indicator {
+  background: rgba(45, 55, 72, 0.95);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 24px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.status-dot {
+  font-size: 12px;
+  animation: pulse 2s infinite;
+}
+
+.healthy-dot {
+  color: #10b981;
+}
+
+.unhealthy-dot {
+  color: #ef4444;
+}
+
+.checking {
+  animation: spin 1s linear infinite;
+  font-size: 16px;
+}
+
+.health-text {
+  color: var(--text-light);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.retry-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #2563eb;
+}
+
+.healthy .health-indicator {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.unhealthy .health-indicator {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .health-check {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .health-indicator {
+    padding: 8px 16px;
+  }
+
+  .health-text {
+    font-size: 12px;
+  }
+}
