@@ -1,7 +1,7 @@
 // Custom React Hooks for API operations
 
-import { useState, useEffect, useCallback } from 'react';
-import apiService from '../services/api';
+import { useState, useEffect, useCallback } from "react";
+import apiService from "../services/api";
 
 /**
  * Hook to check backend health status
@@ -32,7 +32,7 @@ export const useHealthCheck = (checkOnMount = false) => {
     isHealthy,
     isChecking,
     lastChecked,
-    checkHealth
+    checkHealth,
   };
 };
 
@@ -48,15 +48,15 @@ export const useSaveResults = () => {
   const saveResults = useCallback(async (results) => {
     setIsSaving(true);
     setError(null);
-    
+
     const result = await apiService.saveResults(results);
-    
+
     if (result.success) {
       setSavedId(result.data.id);
     } else {
       setError(result.error);
     }
-    
+
     setIsSaving(false);
     return result;
   }, []);
@@ -65,7 +65,7 @@ export const useSaveResults = () => {
     saveResults,
     isSaving,
     savedId,
-    error
+    error,
   };
 };
 
@@ -82,15 +82,15 @@ export const useGetResults = (id) => {
   const fetchResults = useCallback(async (resultId) => {
     setIsLoading(true);
     setError(null);
-    
+
     const result = await apiService.getResults(resultId);
-    
+
     if (result.success) {
       setResults(result.data);
     } else {
       setError(result.error);
     }
-    
+
     setIsLoading(false);
     return result;
   }, []);
@@ -105,7 +105,7 @@ export const useGetResults = (id) => {
     results,
     isLoading,
     error,
-    refetch: fetchResults
+    refetch: fetchResults,
   };
 };
 
@@ -121,15 +121,15 @@ export const useSubmitFeedback = () => {
   const submitFeedback = useCallback(async (feedbackData) => {
     setIsSubmitting(true);
     setError(null);
-    
+
     const result = await apiService.submitFeedback(feedbackData);
-    
+
     if (result.success) {
       setSubmitted(true);
     } else {
       setError(result.error);
     }
-    
+
     setIsSubmitting(false);
     return result;
   }, []);
@@ -144,7 +144,7 @@ export const useSubmitFeedback = () => {
     isSubmitting,
     submitted,
     error,
-    reset
+    reset,
   };
 };
 
@@ -157,7 +157,7 @@ export const useAnalytics = () => {
     apiService.trackEvent({
       event: eventName,
       ...eventData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }, []);
 
