@@ -4,6 +4,27 @@
 import axios from 'axios';
 import API_CONFIG from '../config';
 
+// Candidate backend URLs for local development failover.
+// This prevents hard failures when backend is started on a different common host/port.
+const BACKEND_URL_CANDIDATES = Array.from(
+  new Set(
+    [
+      API_CONFIG.BASE_URL,
+      'http://127.0.0.1:8000',
+      'http://localhost:8000',
+      'http://127.0.0.1:5000',
+      'http://localhost:5000',
+    ].filter(Boolean)
+  )
+);
+
+const isNetworkError = (error) =>
+  !error?.response &&
+  (
+    error?.message === 'Network Error' ||
+    Boolean(error?.request)
+  );
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -12,6 +33,30 @@ const apiClient = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+const setApiBaseUrl = (baseUrl) => {
+  apiClient.defaults.baseURL = baseUrl;
+};
+
+const withBaseUrlFailover = async (requestFn) => {
+  let lastError = null;
+
+  for (const baseUrl of BACKEND_URL_CANDIDATES) {
+    setApiBaseUrl(baseUrl);
+
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error;
+
+      if (!isNetworkError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+};
 
 // Request interceptor
 apiClient.interceptors.request.use(
@@ -76,8 +121,8 @@ const apiService = {
    */
   async analyzeCareer(formData) {
     try {
-      const response = await retryRequest(() =>
-        apiClient.post(API_CONFIG.ENDPOINTS.ANALYZE, formData)
+      const response = await withBaseUrlFailover(() =>
+        retryRequest(() => apiClient.post(API_CONFIG.ENDPOINTS.ANALYZE, formData))
       );
       return {
         success: true,
@@ -98,9 +143,11 @@ const apiService = {
    */
   async checkHealth() {
     try {
-      const response = await apiClient.get(API_CONFIG.ENDPOINTS.HEALTH, {
-        timeout: 5000 // Shorter timeout for health check
-      });
+      const response = await withBaseUrlFailover(() =>
+        apiClient.get(API_CONFIG.ENDPOINTS.HEALTH, {
+          timeout: 5000 // Shorter timeout for health check
+        })
+      );
       return {
         success: true,
         data: response.data

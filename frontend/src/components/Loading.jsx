@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiService from '../services/api';
 import APP_CONSTANTS from '../constants/appConstants';
@@ -10,6 +10,7 @@ const Loading = () => {
   const formData = location.state?.formData;
   const { LOADING } = APP_CONSTANTS;
   const [error, setError] = useState(null);
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (!formData) {
@@ -18,6 +19,11 @@ const Loading = () => {
     }
 
     const submitToBackend = async () => {
+      if (hasSubmittedRef.current) {
+        return;
+      }
+      hasSubmittedRef.current = true;
+
       const startTime = Date.now();
 
       try {

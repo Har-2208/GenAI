@@ -2,8 +2,9 @@
 // Configure your backend API URL via environment variables
 
 const API_CONFIG = {
-  // Backend API base URL - use environment variable or default
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000",
+  // In development, leave empty to use Vite proxy (/api -> backend).
+  // In production, set VITE_API_BASE_URL to your backend URL.
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || "",
 
   // API endpoints
   ENDPOINTS: {

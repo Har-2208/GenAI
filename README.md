@@ -1,170 +1,233 @@
-# AI Career Identity Finder - Frontend
+# AI Career Identity Finder
 
-A modern React-based web application that helps users discover their ideal career paths through AI-powered analysis.
+A full-stack AI-powered career recommendation app built for VIT ET Hackathon. The application analyzes a user's interests, strengths, work style, and risk tolerance using Google Gemini to extract a psychological identity profile, then matches them against a dynamically-growing career database.
 
-## 🎯 Features
+## How It Works
 
-- **Landing Page**: Welcoming interface with project overview
-- **Questionnaire**: Structured form collecting:
-  - Interests (multi-select)
-  - Strengths (multi-select)
-  - Work style preferences
-  - Risk tolerance
-  - Subject preferences
-- **Loading Screen**: Animated loading with AI analysis status
-- **Results Dashboard**: Displays:
-  - Career identity summary
-  - Top 3 career recommendations
-  - Match percentages
-  - Skill requirements
-  - Skill gaps
-  - Next steps guidance
+1. User fills a questionnaire (interests, strengths, work style, risk tolerance, subjects)
+2. Frontend posts the responses to `POST /api/analyze`
+3. Backend extracts an identity profile via Gemini (with multi-model failover)
+4. Backend dynamically expands the career database using Gemini-generated profiles
+5. Careers are scored and filtered by relevance; top 3 are returned
+6. Frontend displays career cards with match %, fit reasoning, and required skills
 
-## 🛠️ Tech Stack
+## Project Structure
 
-- **React 18** - UI framework
-- **React Router** - Navigation
-- **Axios** - HTTP requests
-- **Vite** - Build tool
-- **CSS3** - Styling with modern gradients and animations
-
-## 📦 Installation
-
-1. **Navigate to frontend directory**:
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-## 🚀 Running the Application
-
-1. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-
-2. **Open browser**: The app will automatically open at `http://localhost:3000`
-
-## 🔧 Configuration
-
-### Backend API Endpoint
-
-Update the API endpoint in `src/components/Loading.jsx`:
-
-```javascript
-const API_URL = 'http://localhost:5000/api/analyze';
+```
+GenAI/
+├── LICENSE
+├── README.md
+├── requirements.txt          # Python dependencies
+├── .gitignore
+│
+├── backend/                  # FastAPI server
+│   ├── main.py               # App entry point, CORS setup
+│   ├── routes/
+│   │   └── career_routes.py  # API route definitions
+│   └── services/
+│       ├── analyze_service.py    # Core analysis pipeline (calls model/)
+│       ├── analytics_service.py  # Event tracking stub
+│       ├── feedback_service.py   # Feedback collection stub
+│       └── result_service.py     # Result save/retrieve stub
+│
+├── model/                    # AI/ML pipeline (importable by backend)
+│   ├── __init__.py
+│   ├── settings.py           # Env config loader
+│   ├── llm_client.py         # Gemini client with multi-model failover
+│   ├── extract.py            # LLM-based identity extraction
+│   ├── career_data.py        # SQLite CRUD layer
+│   ├── career_matcher.py     # Weighted scoring engine
+│   ├── main.py               # Orchestration: expand DB, normalize, filter
+│   └── .env.example          # Environment variable template
+│
+└── frontend/                 # React + Vite SPA
+    ├── index.html
+    ├── package.json
+    ├── vite.config.js        # Dev proxy /api → backend
+    ├── .env.example
+    ├── .gitignore
+    └── src/
+        ├── App.jsx           # Router: /, /questionnaire, /loading, /results
+        ├── main.jsx
+        ├── index.css
+        ├── App.css
+        ├── config.js         # API config and endpoint builders
+        ├── components/
+        │   ├── Landing.jsx
+        │   ├── Questionnaire.jsx
+        │   ├── Loading.jsx   # Calls /api/analyze, enforces min 2s
+        │   ├── Results.jsx   # Career cards with match %, fit, skills
+        │   ├── FeedbackModal.jsx
+        │   ├── HealthCheck.jsx
+        │   └── *.css
+        ├── constants/
+        │   └── appConstants.js   # All UI text and option lists
+        ├── hooks/
+        │   └── useApi.js         # Custom hooks for API calls
+        └── services/
+            └── api.js            # Axios layer with retry and URL failover
 ```
 
-Change this to match your backend server URL.
+## Tech Stack
 
-### Expected Backend Response Format
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, React Router v6, Axios, Vite 5 |
+| Backend | Python, FastAPI, Uvicorn |
+| AI / LLM | Google Gemini API (`gemini-2.5-flash`, `gemini-2.5-flash-lite`) |
+| Database | SQLite (Python built-in `sqlite3`) |
+| Styling | Pure CSS with CSS variables, dark theme |
 
-The backend should return JSON in this format:
+## Getting Started
+
+### Prerequisites
+
+- Python 3.9+
+- Node.js 18+
+- A Google Gemini API key
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/your-org/GenAI.git
+cd GenAI
+```
+
+### 2. Configure the model environment
+
+```bash
+cp model/.env.example model/.env
+```
+
+Edit `model/.env` and set your Gemini API key:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=models/gemini-2.5-flash
+GEMINI_MODELS=models/gemini-2.5-flash,models/gemini-2.5-flash-lite
+ENABLE_DYNAMIC_CAREER_EXPANSION=true
+MIN_RELEVANCE_SCORE=55
+CAREER_DB_PATH=career_db.db
+```
+
+### 3. Start the backend
+
+```bash
+# Create and activate a virtual environment (recommended)
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+
+cd backend
+uvicorn main:app --reload
+```
+
+Backend runs at `http://127.0.0.1:8000`
+
+### 4. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs at `http://localhost:3000`
+
+The Vite dev server automatically proxies `/api/*` to the backend, so no additional configuration is needed for local development.
+
+## API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/analyze` | Run the full analysis pipeline |
+| `POST` | `/api/results/save` | Save a result set |
+| `GET` | `/api/results/{result_id}` | Retrieve a saved result |
+| `POST` | `/api/feedback` | Submit user feedback |
+| `POST` | `/api/analytics/track` | Track an analytics event |
+
+### `POST /api/analyze` — Request body
 
 ```json
 {
-  "career_identity_summary": "You are analytical and independent...",
-  "top_careers": [
+  "interests": ["Technology", "Science"],
+  "strengths": ["Analytical Thinking", "Problem Solving"],
+  "workStyle": "Collaborative",
+  "riskTolerance": "Moderate",
+  "subjectsLiked": ["Mathematics", "Computer Science"]
+}
+```
+
+### `POST /api/analyze` — Response body
+
+```json
+{
+  "identity": {
+    "interest_domains": ["technology", "science"],
+    "cognitive_style": "analytical",
+    "motivation_drivers": ["problem_solving"],
+    "work_preferences": ["collaborative"],
+    "learning_style": "structured",
+    "confidence_score": 0.85
+  },
+  "careers": [
     {
-      "career_name": "Data Scientist",
+      "title": "Backend Engineer",
       "match_percentage": 87,
-      "fit_reason": "Strong analytical alignment...",
-      "required_skills": ["Python", "Statistics"],
-      "skill_gap": ["Advanced ML", "SQL"]
+      "why_it_fits": "...",
+      "required_skills": ["Python", "System Design", "APIs"]
     }
   ]
 }
 ```
 
-## 📁 Project Structure
+## Frontend Pages
 
-```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── Landing.jsx          # Landing page
-│   │   ├── Landing.css
-│   │   ├── Questionnaire.jsx    # Assessment form
-│   │   ├── Questionnaire.css
-│   │   ├── Loading.jsx          # Loading screen
-│   │   ├── Loading.css
-│   │   ├── Results.jsx          # Results dashboard
-│   │   └── Results.css
-│   ├── App.jsx                  # Main router
-│   ├── App.css
-│   ├── main.jsx                 # Entry point
-│   └── index.css                # Global styles
-├── index.html
-├── package.json
-├── vite.config.js
-└── README.md
-```
+| Route | Component | Description |
+|---|---|---|
+| `/` | `Landing` | Welcome screen |
+| `/questionnaire` | `Questionnaire` | Multi-section interest form |
+| `/loading` | `Loading` | Calls API, shows animated loader |
+| `/results` | `Results` | Career match cards |
 
-## 🎨 Design Theme
+## Environment Variables
 
-- **Color Scheme**: Dark blue/purple gradient theme
-- **Primary**: #667eea (Blue) → #764ba2 (Purple)
-- **Background**: #1a1a2e (Dark) → #16213e (Blue-dark)
-- **Cards**: Glassmorphism effect with backdrop blur
-- **Animations**: Smooth transitions and hover effects
+### `model/.env`
 
-## 🌐 Available Scripts
+| Variable | Default | Description |
+|---|---|---|
+| `GEMINI_API_KEY` | *(required)* | Google Gemini API key |
+| `GEMINI_MODEL` | `models/gemini-2.5-flash` | Primary model |
+| `GEMINI_MODELS` | `models/gemini-2.5-flash,...` | Comma-separated failover list |
+| `ENABLE_DYNAMIC_CAREER_EXPANSION` | `true` | Generate new career profiles via LLM |
+| `MIN_RELEVANCE_SCORE` | `55` | Minimum match score (0–100) to include in results |
+| `CAREER_DB_PATH` | `career_db.db` | Path to SQLite database (relative to `model/`) |
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+### `frontend/.env` (optional)
 
-## 📝 Mock Data
+| Variable | Description |
+|---|---|
+| `VITE_API_BASE_URL` | Override backend URL (default: uses Vite proxy) |
+| `VITE_DEV_PROXY_TARGET` | Proxy target in dev (default: `http://127.0.0.1:8000`) |
+| `VITE_API_TIMEOUT` | Request timeout in ms (default: `30000`) |
 
-The app includes mock data for development/testing when the backend is unavailable. See `src/components/Loading.jsx` for the mock response structure.
+Copy `frontend/.env.example` to `frontend/.env` to customize.
 
-## 🔄 Integration with Backend
+## Career Scoring
 
-To connect with your backend:
+The career scoring engine (`model/career_matcher.py`) uses a weighted formula:
 
-1. Ensure your backend API is running
-2. Update the `API_URL` in `Loading.jsx`
-3. Ensure CORS is enabled on your backend
-4. Backend should accept POST requests with form data
-5. Backend should return the expected JSON format
+| Dimension | Weight |
+|---|---|
+| Interest match | 35% |
+| Cognitive style match | 30% |
+| Motivation match | 20% |
+| Work style match | 15% |
 
-## 🎯 User Flow
+Careers below `MIN_RELEVANCE_SCORE` are filtered out. The top 3 from the remaining list are returned to the frontend.
 
-1. User lands on homepage → clicks "Start Assessment"
-2. Fills out questionnaire → submits form
-3. Loading screen shows while AI analyzes
-4. Results page displays personalized career recommendations
-5. User can print results or retake assessment
+## License
 
-## 📱 Responsive Design
-
-The application is fully responsive and works on:
-- Desktop (1200px+)
-- Tablet (768px - 1199px)
-- Mobile (< 768px)
-
-## 🖨️ Print Functionality
-
-Users can print their results directly from the results page. The print stylesheet hides navigation buttons for a clean printout.
-
-## 🚀 Deployment
-
-Build for production:
-
-```bash
-npm run build
-```
-
-The `dist/` folder will contain production-ready files that can be deployed to any static hosting service (Vercel, Netlify, GitHub Pages, etc.).
-
-## 📄 License
-
-This project is part of a hackathon submission.
-
----
-
-Made with ❤️ for AI Career Identity Finder
+MIT — see [LICENSE](LICENSE)

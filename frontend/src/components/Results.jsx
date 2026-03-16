@@ -124,15 +124,6 @@ const Results = () => {
                     ))}
                   </div>
                 </div>
-
-                <div className="career-section">
-                  <h4>{RESULTS.CAREER_CARD.SKILLS_TO_DEVELOP}</h4>
-                  <div className="skills-tags">
-                    {career.skill_gap.map((skill, idx) => (
-                      <span key={idx} className="skill-tag gap">{skill}</span>
-                    ))}
-                  </div>
-                </div>
               </div>
             ))}
           </div>
